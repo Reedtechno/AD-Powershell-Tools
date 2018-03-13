@@ -1,12 +1,19 @@
-    $staffResults = @()
- 
-    $StaffMembers = Get-content "C:\temp\phishedusers.txt"
-    $StaffMembers.Count
-Foreach ($StaffMember in $StaffMembers){
-   $staff = get-aduser -filter{userprincipalname -eq $StaffMember}
-    # Set-ADUser -Identity $Staff.SamAccountName -ChangePasswordAtLogon $True -whatif
-    $staffResults += get-ADUser -Identity $Staff.SamAccountName -Properties * | Select name, passwordlastset
-    }
-
-    $staffResults | sort passwordlastset | Export-csv c:\temp\lastpasswordset.csv -NoTypeInformation 
+#NAME:  LastPassSet
+#AUTHOR: David Reed, @ReedTechno
+#LASTEDIT: 3/12/2018
     
+
+$Accounts = Get-content "C:\PATH\file.txt" #List should be UPNs ie. user@domain.com
+$ExportPath = "C:\PATH\File.csv"
+
+$Results = @()
+Write-Output "Number of Accounts in list: " $Accounts.Count
+Foreach ($Account in $Accounts){
+$User = get-aduser -filter{userprincipalname -eq $Account}
+Set-ADUser -Identity $User.SamAccountName -ChangePasswordAtLogon $True -whatif
+$Results += get-ADUser -Identity $User.SamAccountName -Properties * | Select-Object name, passwordlastset
+}
+
+Write-Output "Saving output to:" $ExportPath
+$Results | Sort-Object passwordlastset | Export-csv $ExportPath -NoTypeInformation 
+
